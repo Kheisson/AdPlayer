@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
@@ -30,7 +28,12 @@ namespace CrossPromo.Scripts
 
         private Dictionary<string, bool> _trackingUrls = new Dictionary<string, bool>();
 
+        #region Public Events
 
+        public event Action OnPlaylistFinished;
+        public event Action OnPlaylistStarted;
+        
+        #endregion
 
         private void Awake()
         {
@@ -43,7 +46,6 @@ namespace CrossPromo.Scripts
                 gameObject.AddComponent<StandaloneInputModule>();
             }
             DontDestroyOnLoad(gameObject);     //In case of instant load, GameObject is kept
-
             adButton.onClick.AddListener(VideoClicked);
         }
 
@@ -60,6 +62,8 @@ namespace CrossPromo.Scripts
 
             _metaDataList = req.Data.results;
 
+            OnPlaylistStarted?.Invoke();
+            
             _videoPlaylistCoroutine = StartCoroutine(RunVideo());
 
         }
@@ -128,6 +132,7 @@ namespace CrossPromo.Scripts
         private void OnEnable()
         {
             if (_isRunning) return;
+            OnPlaylistStarted?.Invoke();
             _currentVideoIndex = 0;
             _videoPlaylistCoroutine = StartCoroutine(RunVideo());
             videoPlayer.Play();
@@ -135,6 +140,7 @@ namespace CrossPromo.Scripts
 
         private void OnDisable()
         {
+            OnPlaylistFinished?.Invoke();
             _isRunning = false;
             _videoPlaylistCoroutine = null;
         }
@@ -156,8 +162,7 @@ namespace CrossPromo.Scripts
 
         public void Pause()
         {
-            if (videoPlayer.isPaused)
-                return;
+            if (videoPlayer.isPaused) return;
             StopCoroutine(_videoPlaylistCoroutine);
             videoPlayer.Pause();
         }
@@ -179,8 +184,7 @@ namespace CrossPromo.Scripts
 
         public void Resume()
         {
-            if (videoPlayer.isPlaying)
-                return;
+            if (videoPlayer.isPlaying) return;
             CoroutineCheck();
         }
         
