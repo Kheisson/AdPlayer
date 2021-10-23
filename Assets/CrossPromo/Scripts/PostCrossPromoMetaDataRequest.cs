@@ -20,7 +20,6 @@ namespace CrossPromo.Scripts
         public override IEnumerator SendRequest()
         {
             using var uwr = UnityWebRequest.Post(URL, Body);
-            Debug.Log("POST");
             yield return uwr.SendWebRequest();
             var success = string.IsNullOrEmpty(uwr.error);
             if (!success)

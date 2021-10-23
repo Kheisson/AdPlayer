@@ -13,7 +13,7 @@ namespace CrossPromo.Scripts
         [SerializeField] private int playerId;
 
         [SerializeField] private VideoPlayer videoPlayer;
-        
+
         [SerializeField] private Button adButton;
 
         private string serverEndpoint = "https://run.mocky.io/v3/81fab340-9550-4ab4-8859-836b01ee48ff";
@@ -32,20 +32,21 @@ namespace CrossPromo.Scripts
 
         public event Action OnPlaylistFinished;
         public event Action OnPlaylistStarted;
-        
+
         #endregion
 
         private void Awake()
         {
             _isRunning = true;
-            
+
             //Required components in case canvas is missing defaulted event system GameObject
             if (FindObjectOfType<EventSystem>() is null)
             {
                 gameObject.AddComponent<EventSystem>();
                 gameObject.AddComponent<StandaloneInputModule>();
             }
-            DontDestroyOnLoad(gameObject);     //In case of instant load, GameObject is kept
+
+            DontDestroyOnLoad(gameObject); //In case of instant load, GameObject is kept
             adButton.onClick.AddListener(VideoClicked);
         }
 
@@ -63,9 +64,8 @@ namespace CrossPromo.Scripts
             _metaDataList = req.Data.results;
 
             OnPlaylistStarted?.Invoke();
-            
-            _videoPlaylistCoroutine = StartCoroutine(RunVideo());
 
+            _videoPlaylistCoroutine = StartCoroutine(RunVideo());
         }
 
         private IEnumerator RunVideo()
@@ -90,7 +90,7 @@ namespace CrossPromo.Scripts
             {
                 _currentVideoIndex++;
                 _currentVideoIndex = Mathf.Clamp(_currentVideoIndex, 0, _metaDataList.Count);
-                
+
                 //Playlist finished playing all videos
                 if (_currentVideoIndex == _metaDataList.Count)
                 {
@@ -101,7 +101,7 @@ namespace CrossPromo.Scripts
                 CoroutineCheck();
             }
         }
-        
+
         private void CoroutineCheck()
         {
             //Coroutine stopper in case of interruption, e.g. - Pause is called.
@@ -118,7 +118,7 @@ namespace CrossPromo.Scripts
             //Attached to renderer, will be called when Ad is clicked
             var trackingUrl = _metaDataList[_currentVideoIndex].tracking_url
                 .Replace("[PLAYER_ID]", playerId.ToString());
-            
+
             if (!_trackingUrls.ContainsKey(trackingUrl))
             {
                 _trackingUrls.Add(trackingUrl, true);
@@ -146,6 +146,7 @@ namespace CrossPromo.Scripts
         }
 
         #region Player Controls
+
         public void Next()
         {
             _currentVideoIndex++;
@@ -187,7 +188,7 @@ namespace CrossPromo.Scripts
             if (videoPlayer.isPlaying) return;
             CoroutineCheck();
         }
-        
+
         #endregion
     }
 }
