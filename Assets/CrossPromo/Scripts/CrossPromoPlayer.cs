@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -26,7 +28,7 @@ namespace CrossPromo.Scripts
 
         private Coroutine _videoPlaylistCoroutine;
 
-        private Dictionary<string, bool> _trackingUrls = new Dictionary<string, bool>();
+        private HashSet<string> _trackingUrls = new HashSet<string>();
 
         #region Public Events
 
@@ -57,11 +59,17 @@ namespace CrossPromo.Scripts
 
         private IEnumerator Start()
         {
-            var req = new GetCrossPromoMetaDataRequest(serverEndpoint);
+            var req = new GetCrossPromoRequest(serverEndpoint, error =>
+            {
+                Debug.LogError($"Web request failed, terminating player error: {error}");
+                Destroy(gameObject);
+            });
 
             yield return StartCoroutine(req.SendRequest());
 
-            _metaDataList = req.Data.results;
+            _metaDataList = req.DataDto.results
+                .Select(dto => new CrossPromoMetaData(dto.id, dto.tracking_url, dto.click_url, dto.video_url))
+                .ToList();
 
             OnPlaylistStarted?.Invoke();
 
@@ -70,9 +78,9 @@ namespace CrossPromo.Scripts
 
         private IEnumerator RunVideo()
         {
-            if (videoPlayer.url != _metaDataList[_currentVideoIndex].video_url)
+            if (videoPlayer.url != _metaDataList[_currentVideoIndex].VideoUrl)
             {
-                videoPlayer.url = _metaDataList[_currentVideoIndex].video_url;
+                videoPlayer.url = _metaDataList[_currentVideoIndex].VideoUrl;
                 videoPlayer.Prepare();
             }
 
@@ -116,17 +124,20 @@ namespace CrossPromo.Scripts
         private void VideoClicked()
         {
             //Attached to renderer, will be called when Ad is clicked
-            var trackingUrl = _metaDataList[_currentVideoIndex].tracking_url
+            var trackingUrl = _metaDataList[_currentVideoIndex].TrackingUrl
                 .Replace("[PLAYER_ID]", playerId.ToString());
 
-            if (!_trackingUrls.ContainsKey(trackingUrl))
+            if (!_trackingUrls.Contains(trackingUrl))
             {
-                _trackingUrls.Add(trackingUrl, true);
-                var post = new PostCrossPromoMetaDataRequest(trackingUrl, string.Empty);
+                _trackingUrls.Add(trackingUrl);
+                var post = new PostCrossPromoRequest(trackingUrl, error =>
+                {
+                    Debug.Log($"Failed to send tracking url, {error}");
+                });
                 StartCoroutine(post.SendRequest());
             }
             
-            Application.OpenURL(_metaDataList[_currentVideoIndex].click_url);
+            Application.OpenURL(_metaDataList[_currentVideoIndex].ClickUrl);
         }
 
         private void OnEnable()

@@ -1,26 +1,24 @@
-﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace CrossPromo.Scripts
 {
-    /// <summary>
-    /// Data class to store JSON results -> Of type CrossPromoMetaData
-    /// </summary>
-    public class CrossPromosMetaData
-    {
-        public List<CrossPromoMetaData> results;
-    }
-
-
-    [Serializable]
     public class CrossPromoMetaData
     {
-        public string id;
+        public string Id { get; }
 
-        public string tracking_url;
+        public string TrackingUrl { get; }
 
-        public string click_url;
+        public string ClickUrl { get;  }
 
-        public string video_url;
+        public string VideoUrl { get;  }
+        
+        public CrossPromoMetaData(string id, string trackingUrl, string clickUrl, string videoUrl)
+        {
+            Id = id;
+            TrackingUrl = trackingUrl;
+            ClickUrl = clickUrl;
+            VideoUrl = videoUrl;
+        }
     }
 }
