@@ -2,7 +2,7 @@ using CrossPromo.Scripts;
 using UnityEngine;
 
 /// <summary>
-/// Demo script used in the Example scene, for documantation visit -
+/// Demo Script for Example scene, to view documentation please visit
 /// https://github.com/Kheisson/AdPlayer/blob/master/README.md
 /// </summary>
 
